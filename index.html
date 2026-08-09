@@ -1385,7 +1385,7 @@ async function processData(){
     txTM.forEach(tx=>{if(tx.day===maxCalDayTM&&tx.dayMonth>0){maxMonth=tx.dayMonth;maxYear=tx.dayYear;}});
     const MONTH_NAMES=['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     const maxDateStr=maxCalDayTM+' '+MONTH_NAMES[maxMonth]+' '+maxYear;
-    S.data.periode=maxYear+'-'+String(maxMonth).padStart(2,'0');
+    const periode=maxYear+'-'+String(maxMonth).padStart(2,'0');
 
     setProgress(52,`${txTM.length.toLocaleString()} transaksi TM | HK: ${hkBerjalan} hari (s/d tgl ${maxCalDayTM})`);await tick();
 
@@ -1459,7 +1459,7 @@ async function processData(){
     const lmWorkDaySet=new Set(); txLM.forEach(tx=>{if(tx.day>0)lmWorkDaySet.add(tx.day);});
     const lmWorkDays=Array.from(lmWorkDaySet).sort((a,b)=>a-b);
 
-    S.data={salesmen,omsetRows,epbRows,gt,hkBulan,hkBerjalan,maxDateStr,nooData,gNOO,txTM,txLM,txTMAllOutlet,txLMAllOutlet,markRoaMap,depoMarkRoaMap,roaOutletMap,firstDayMap,nooMap,tmWorkDays,lmWorkDays};
+    S.data={salesmen,omsetRows,epbRows,gt,hkBulan,hkBerjalan,maxDateStr,periode,nooData,gNOO,txTM,txLM,txTMAllOutlet,txLMAllOutlet,markRoaMap,depoMarkRoaMap,roaOutletMap,firstDayMap,nooMap,tmWorkDays,lmWorkDays};
 
     // Parse JKS untuk CB (call base = jumlah outlet assigned per salesman)
     if(S.files.jks){
