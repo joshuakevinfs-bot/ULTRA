@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 :root{--navy:#111114;--navy2:#19191E;--navy3:#232329;--card:#1C1C22;--card2:#232329;--teal:#009B79;--teal2:#00805F;--gold:#D9701E;--red:#EF4470;--green:#1B9860;--blue-acc:#5B7CFA;--purple:#9366FF;--text:#FFFFFF;--text2:#B8BAC6;--text3:#7A7C8C;--border:rgba(255,255,255,0.08);--shadow:0 8px 24px rgba(0,0,0,.35);--shadow-sm:0 2px 10px rgba(0,0,0,.25);--radius-lg:20px;--radius-md:16px;--radius-sm:12px}
 [data-theme="light"]{
@@ -639,8 +640,20 @@ thead th:hover .th-filter-icon{opacity:.8}
 </head>
 <body>
 
+<!-- LOGIN SCREEN (Supabase Auth) -->
+<div id="login-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px">
+  <div class="upload-logo"><div class="word">ULTRA<span class="dot"></span></div><div class="tagline">Ultimate Level Transformation &amp; Result Analysis</div></div>
+  <div style="width:320px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px;box-shadow:var(--shadow)">
+    <div style="font-size:.9rem;font-weight:800;color:var(--text);margin-bottom:14px">Login</div>
+    <input type="email" id="login-email" placeholder="Email" autocomplete="username" style="width:100%;padding:10px 12px;margin-bottom:10px;border-radius:8px;border:1px solid var(--border);background:var(--navy2);color:var(--text);font-size:.82rem">
+    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" style="width:100%;padding:10px 12px;margin-bottom:14px;border-radius:8px;border:1px solid var(--border);background:var(--navy2);color:var(--text);font-size:.82rem">
+    <button id="login-btn" onclick="doLogin()" style="width:100%;padding:11px;border-radius:8px;border:none;background:var(--teal);color:#fff;font-weight:800;font-size:.85rem;cursor:pointer">Masuk</button>
+    <div id="login-error" style="color:var(--red);font-size:.72rem;margin-top:10px;display:none"></div>
+  </div>
+</div>
+
 <!-- UPLOAD SCREEN -->
-<div id="upload-screen">
+<div id="upload-screen" style="display:none">
   <div class="upload-logo"><div class="word">ULTRA<span class="dot"></span></div><div class="tagline">Ultimate Level Transformation &amp; Result Analysis</div></div>
 
   <!-- HK Input -->
@@ -715,6 +728,7 @@ thead th:hover .th-filter-icon{opacity:.8}
     <div class="top-logo"><div class="tl-word">ULTRA<span class="tl-dot"></span></div><div class="tl-tagline">Ultimate Level Transformation &amp; Result Analysis</div></div>
     <div class="top-actions">
       <div class="badge-date"><span class="live-dot"><span class="live-dot-core"></span><span class="live-dot-ring"></span></span><span id="badge-update">—</span></div>
+      <span id="sb-sync-badge" style="font-size:.68rem;font-weight:700;color:var(--text3)"></span>
       <button class="btn-sm btn-upload-again" onclick="resetToUpload()">↩ Upload Ulang</button>
       <button id="theme-toggle-btn" class="btn-sm" onclick="toggleTheme()" style="background:var(--navy3);border:1px solid var(--border);color:var(--text2);font-size:.85rem;padding:5px 10px;min-width:36px" title="Toggle Dark/Light">Dark</button>
       <button class="btn-sm btn-export" onclick="showExport()">Export</button>
@@ -858,6 +872,35 @@ thead th:hover .th-filter-icon{opacity:.8}
 
 <script>
 // ══ CONSTANTS ══
+// ══ SUPABASE (auth + push data) ══
+const SB_URL='https://mfynnbiehjvtnpknayxb.supabase.co';
+const SB_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1meW5uYmllaGp2dG5wa25heXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYyNzk3NDgsImV4cCI6MjEwMTg1NTc0OH0.c0tVa4ThmFoILyOuZqnLlx5CmfcAw0Vel0fw6BcRZ-8';
+const sb=window.supabase.createClient(SB_URL,SB_ANON_KEY);
+
+async function checkSession(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('upload-screen').style.display='flex';
+  } else {
+    document.getElementById('login-screen').style.display='flex';
+    document.getElementById('upload-screen').style.display='none';
+  }
+}
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  const errEl=document.getElementById('login-error');
+  const btn=document.getElementById('login-btn');
+  errEl.style.display='none';
+  if(!email||!password){errEl.textContent='Isi email & password dulu.';errEl.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Memproses...';
+  const{error}=await sb.auth.signInWithPassword({email,password});
+  btn.disabled=false;btn.textContent='Masuk';
+  if(error){errEl.textContent='Login gagal: '+error.message;errEl.style.display='block';return;}
+  checkSession();
+}
+document.addEventListener('DOMContentLoaded',checkSession);
 // Global error catcher — tampil di halaman biar ketahuan
 window.onerror=function(msg,src,line,col,err){
   const existing=document.getElementById('js-err-banner');
@@ -1342,6 +1385,7 @@ async function processData(){
     txTM.forEach(tx=>{if(tx.day===maxCalDayTM&&tx.dayMonth>0){maxMonth=tx.dayMonth;maxYear=tx.dayYear;}});
     const MONTH_NAMES=['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     const maxDateStr=maxCalDayTM+' '+MONTH_NAMES[maxMonth]+' '+maxYear;
+    S.data.periode=maxYear+'-'+String(maxMonth).padStart(2,'0');
 
     setProgress(52,`${txTM.length.toLocaleString()} transaksi TM | HK: ${hkBerjalan} hari (s/d tgl ${maxCalDayTM})`);await tick();
 
@@ -1464,7 +1508,79 @@ async function processData(){
 
     setProgress(98,'Merender dashboard...');await tick();
     renderDashboard();hideLoading();
+    pushToSupabase(); // fire-and-forget, jalan di background, gak nge-block UI
   }catch(e){hideLoading();console.error(e);alert('Error:\n\n'+e.message);}
+}
+
+async function pushToSupabase(){
+  const badge=document.getElementById('sb-sync-badge');
+  const setBadge=(txt,color)=>{if(badge){badge.textContent=txt;badge.style.color=color;}};
+  try{
+    setBadge('☁ Mengirim ke cloud...','var(--gold)');
+    const{salesmen,omsetRows,epbRows,jksOutlets,txTM,periode}=S.data;
+    if(!periode)throw new Error('Periode tidak terdeteksi');
+
+    // Kumpulkan depo unik yang muncul di data MPP (dipakai buat tag semua baris)
+    const depoSet=new Set((salesmen||[]).map(s=>s.area).filter(Boolean));
+    const mainDepo=[...depoSet][0]||'UNKNOWN';
+
+    // 1) outlet_master — dari JKS (upsert, key: kd_outlet+depo)
+    if(jksOutlets&&jksOutlets.length){
+      const rows=jksOutlets.map(o=>({
+        kd_outlet:o.kdOutlet,nama_outlet:o.namaOutlet,kd_salesman:o.kdSls,
+        nama_salesman:o.namaSls,rute:o.rute,cycle:'',lat:null,lng:null,
+        depo:mainDepo,area:o.div||mainDepo,updated_at:new Date().toISOString()
+      }));
+      for(let i=0;i<rows.length;i+=500){
+        const{error}=await sb.from('outlet_master').upsert(rows.slice(i,i+500),{onConflict:'kd_outlet,depo'});
+        if(error)throw new Error('outlet_master: '+error.message);
+      }
+    }
+
+    // 2) salesman_summary — gabungan omsetRows + epbRows (upsert per kd_salesman+depo+bulan)
+    if(omsetRows&&omsetRows.length){
+      const epbByKode={};
+      (epbRows||[]).forEach(r=>{epbByKode[r.kode]=r;});
+      const rows=omsetRows.map(r=>({
+        kd_salesman:String(r.kode),nama_salesman:r.nama,depo:r.area,area:r.area,bulan:periode,
+        omset_tm:r.omsetTM,omset_lm:r.omsetLM,achievement:r.achVsTgt,growth:r.growth,
+        ec_tm:r.ecTM,ec_lm:r.ecLM,roa:r.roaTM,total_epb:(epbByKode[r.kode]&&epbByKode[r.kode].totalEPB)||0,
+        updated_at:new Date().toISOString()
+      }));
+      for(let i=0;i<rows.length;i+=500){
+        const{error}=await sb.from('salesman_summary').upsert(rows.slice(i,i+500),{onConflict:'kd_salesman,depo,bulan'});
+        if(error)throw new Error('salesman_summary: '+error.message);
+      }
+    }
+
+    // 3) raw_transaksi — dari dBase TM (insert biasa, sengaja gak upsert karena gak ada unique key alami)
+    if(txTM&&txTM.length){
+      const rows=txTM.map(t=>({
+        kd_outlet:t.outlet,kd_salesman:String(t.kodeSlm||''),kd_sls2:String(t.kdSls2||''),
+        mark:t.mark,value:t.value,
+        tanggal:t.dayYear&&t.dayMonth&&t.day?`${t.dayYear}-${String(t.dayMonth).padStart(2,'0')}-${String(t.day).padStart(2,'0')}`:null,
+        mutasi:t.mutasi,sku:t.sku,deskripsi:t.desc,no_faktur:t.faktur,
+        depo:mainDepo,periode,created_at:new Date().toISOString()
+      }));
+      for(let i=0;i<rows.length;i+=500){
+        const{error}=await sb.from('raw_transaksi').insert(rows.slice(i,i+500));
+        if(error)throw new Error('raw_transaksi: '+error.message);
+      }
+    }
+
+    // 4) sync_log — catat bahwa sync ini berhasil
+    const{data:{user}}=await sb.auth.getUser();
+    await sb.from('sync_log').insert({
+      depo:mainDepo,jenis_file:'Full Sync',waktu_sync:new Date().toISOString(),
+      jumlah_file:Object.keys(S.files||{}).filter(k=>S.files[k]&&S.files[k].length).length,
+      synced_by:user?user.id:null
+    });
+
+    setBadge('☁ Tersinkron ke cloud','var(--green)');
+  }catch(e){
+    console.error('pushToSupabase error:',e);
+    setBadge('☁ Gagal sync: '+e.message,'var(--red)');
+  }
 }
 
 function recalcEPB(){
