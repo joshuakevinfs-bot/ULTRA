@@ -116,6 +116,7 @@
 .uc-cache-time{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .uc-cache-row{margin-top:4px;display:flex;align-items:center;gap:8px;justify-content:space-between}
 .uc-clear-btn{position:relative;z-index:3;flex:none;display:none;background:transparent;border:1px solid var(--border);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.uc-tmpl-btn{position:relative;z-index:3;display:inline-flex;align-items:center;gap:4px;margin-top:8px;background:transparent;border:none;padding:0;font-size:10px;font-weight:700;letter-spacing:.02em;color:var(--teal);text-decoration:underline;cursor:pointer}
 .uc-clear-btn:hover{border-color:var(--red);color:var(--red)}
 .upload-card.cached .uc-clear-btn,.upload-card.done .uc-clear-btn{display:inline-block}
 .upload-cache-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:640px;margin:0 auto 18px;padding:10px 16px;background:rgba(217,112,30,.1);border:1px solid rgba(217,112,30,.35);border-radius:var(--radius-sm)}
@@ -657,12 +658,14 @@ thead th:hover .th-filter-icon{opacity:.8}
       <div class="uc-check">✓</div><div class="uc-icon">MP</div>
       <div class="uc-label">Wajib · bisa multi-file</div><div class="uc-name">Target MPP / Salesman</div>
       <div class="uc-desc">Kode &amp; nama salesman, target bulanan, strata EPB</div>
+      <button type="button" class="uc-tmpl-btn" onclick="event.stopPropagation();downloadTemplate('mpp')">⬇ Download template</button>
       <div class="uc-filename" id="fn-mpp">Belum dipilih</div>
       <div class="uc-cache-row"><div class="uc-cache-time" id="ct-mpp"></div><button type="button" class="uc-clear-btn" id="clr-mpp" onclick="event.stopPropagation();clearOneCache('mpp')" title="Hapus cache slot ini">Clear cache</button></div></div>
     <div class="upload-card" id="uc-jks"><input type="file" multiple accept=".xlsx,.xlsb,.xls" onchange="handleFile(this,'jks')">
       <div class="uc-check">✓</div><div class="uc-icon">JK</div>
       <div class="uc-label">Opsional · bisa multi-file</div><div class="uc-name">JKS / Master Outlet</div>
       <div class="uc-desc">Kode outlet, rute, cycle, assignment salesman</div>
+      <button type="button" class="uc-tmpl-btn" onclick="event.stopPropagation();downloadTemplate('jks')">⬇ Download template</button>
       <div class="uc-filename" id="fn-jks">Belum dipilih</div>
       <div class="uc-cache-row"><div class="uc-cache-time" id="ct-jks"></div><button type="button" class="uc-clear-btn" id="clr-jks" onclick="event.stopPropagation();clearOneCache('jks')" title="Hapus cache slot ini">Clear cache</button></div></div>
     <div class="upload-card" id="uc-dbase"><input type="file" multiple accept=".xlsx,.xlsb,.xls" onchange="handleFile(this,'dbase')">
@@ -715,7 +718,7 @@ thead th:hover .th-filter-icon{opacity:.8}
       <button class="btn-sm btn-upload-again" onclick="resetToUpload()">↩ Upload Ulang</button>
       <button id="theme-toggle-btn" class="btn-sm" onclick="toggleTheme()" style="background:var(--navy3);border:1px solid var(--border);color:var(--text2);font-size:.85rem;padding:5px 10px;min-width:36px" title="Toggle Dark/Light">Dark</button>
       <button class="btn-sm btn-export" onclick="showExport()">Export</button>
-      <button class="btn-sm" onclick="showCaptureMenu()" style="background:#8B5CF6;color:#fff;border:none" title="Screenshot">Capture</button>
+      <button class="btn-sm" onclick="doCaptureCombined()" style="background:#8B5CF6;color:#fff;border:none" title="Screenshot">Capture</button>
     </div>
   </div>
   <div class="tab-bar">
@@ -725,7 +728,7 @@ thead th:hover .th-filter-icon{opacity:.8}
     <button class="tab-btn" data-color="#D9701E" onclick="switchTab('batalan')">Analisa Batalan <span class="tab-badge">Zyllem</span></button>
     <button class="tab-btn" data-color="#9366FF" onclick="switchTab('anomali')">Deteksi Anomali <span class="tab-badge">Fraud</span></button>
     <button class="tab-btn" data-color="#00805F" onclick="switchTab('jksed')">JKS <span class="tab-badge">Editor</span></button>
-    <button class="tab-btn" data-color="#84CC16" onclick="switchTab('insight')">Chart &amp; Insight <span class="tab-badge">Beta</span></button>
+    <button class="tab-btn" data-color="#84CC16" onclick="switchTab('insight')">Auto Direction <span class="tab-badge">ASS</span></button>
   </div>
 
   <div id="tab-mtd" class="dash-content">
@@ -822,29 +825,6 @@ thead th:hover .th-filter-icon{opacity:.8}
 </div>
 
 <div id="capture-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;flex-direction:column;gap:12px">
-  <div style="background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:26px;width:340px;box-shadow:var(--shadow)">
-    <div style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:4px">Capture dashboard</div>
-    <div style="font-size:.75rem;color:var(--text3);margin-bottom:18px">Pilih bagian yang mau di-capture</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
-      <div class="cap-opt" onclick="doCapture('kpi')" style="border-color:rgba(91,124,250,.35)">
-        <span class="cap-dot" style="background:var(--blue-acc)"></span>
-        <div><div class="cap-title">KPI Summary</div><div class="cap-desc">Ringkasan KPI + breakdown per depo</div></div>
-      </div>
-      <div class="cap-opt" onclick="doCapture('omset')" style="border-color:rgba(217,112,30,.35)">
-        <span class="cap-dot" style="background:var(--gold)"></span>
-        <div><div class="cap-title">Analisa Omset &amp; EC per Salesman</div><div class="cap-desc">Tabel omset MTD, ach%, growth, EC</div></div>
-      </div>
-      <div class="cap-opt" onclick="doCapture('epb')" style="border-color:rgba(229,71,155,.35)">
-        <span class="cap-dot" style="background:#E5479B"></span>
-        <div><div class="cap-title">EPB &amp; Point per Salesman</div><div class="cap-desc">Tabel EPB breakdown, total point, ROA, CB</div></div>
-      </div>
-      <div class="cap-opt" onclick="doCapture('full')" style="border-color:var(--teal)">
-        <span class="cap-dot" style="background:var(--teal)"></span>
-        <div><div class="cap-title">Full dashboard</div><div class="cap-desc">Semua section sekaligus (file besar)</div></div>
-      </div>
-    </div>
-    <button onclick="hideCaptureMenu()" class="btn-cancel-exp" style="width:100%">Batal</button>
-  </div>
   <div id="capture-progress" style="display:none;color:#fff;font-size:.85rem;text-align:center">
     <div class="loader" style="margin:0 auto 8px"></div>
     <div id="capture-msg">Memproses...</div>
@@ -1035,6 +1015,29 @@ function askUpdChoice(key,count){
 function resolveUpdChoice(choice){
   document.getElementById('updchoice-backdrop').classList.remove('show');
   if(_updChoiceResolver){_updChoiceResolver(choice);_updChoiceResolver=null;}
+}
+function downloadTemplate(type){
+  const wb=XLSX.utils.book_new();
+  if(type==='mpp'){
+    const bulanNow=new Date().toLocaleDateString('id-ID',{month:'long',year:'numeric'}).toUpperCase();
+    const aoa=[
+      ['KD_SLS TO BE','NAMA_SLS TO BE','AREA','TARGET '+bulanNow,'TGT EPB STRATA 1','TGT EPB STRATA 2'],
+      [134405,'CONTOH NAMA SALESMAN','MKS UTARA',94000000,1800,2000]
+    ];
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols']=[{wch:14},{wch:26},{wch:14},{wch:18},{wch:16},{wch:16}];
+    XLSX.utils.book_append_sheet(wb,ws,'Master MPP');
+    XLSX.writeFile(wb,'Template_Target_MPP_Salesman.xlsx');
+  }else if(type==='jks'){
+    const aoa=[
+      ['KD OUTLET','NAMA OUTLET','ALAMAT','KECAMATAN','TYPE OUTLET','RUTE TO BE','CYCLE TO BE','KD_SLS TO BE','NAMA_SLS TO BE','LATITUDE','LONGITUDE'],
+      ['C2118355','KIOS CONTOH','Jl. Contoh No. 1','Kec. Contoh','KIOS','R01','1,3,5',134405,'CONTOH NAMA SALESMAN',-4.4012900,120.3299700]
+    ];
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols']=[{wch:12},{wch:24},{wch:24},{wch:16},{wch:12},{wch:10},{wch:12},{wch:14},{wch:26},{wch:12},{wch:12}];
+    XLSX.utils.book_append_sheet(wb,ws,'Sheet1');
+    XLSX.writeFile(wb,'Template_JKS_Master_Outlet.xlsx');
+  }
 }
 async function handleFile(inp,key){
   const newFiles=Array.from(inp.files||[]);
@@ -1614,16 +1617,151 @@ function renderDashboard(){
 // Mapping Depo -> Cabang -> Region (dari struktur JKS/organisasi). Depo yang gak ketemu di map
 // (mis. Sulawesi 1/2 yang belum dikasih strukturnya) otomatis masuk region "LAINNYA" sbg cabang sendiri.
 const DEPO_CABANG_REGION={
-  'DENPASAR':['DENPASAR','R14 BALI NUSRA'],'KLUNGKUNG':['DENPASAR','R14 BALI NUSRA'],'SINGARAJA':['DENPASAR','R14 BALI NUSRA'],
-  'PRAYA':['MATARAM','R14 BALI NUSRA'],'MATARAM':['MATARAM','R14 BALI NUSRA'],'SELONG':['MATARAM','R14 BALI NUSRA'],
-  'KUPANG':['KUPANG','R14 BALI NUSRA'],'ATAMBUA':['KUPANG','R14 BALI NUSRA'],
-  'PONTIANAK':['PONTIANAK','R15 KALBARTIM'],'SINGKAWANG':['PONTIANAK','R15 KALBARTIM'],
-  'SAMARINDA':['SAMARINDA','R15 KALBARTIM'],'TENGGARONG':['SAMARINDA','R15 KALBARTIM'],
-  'BALIKPAPAN':['BALIKPAPAN','R15 KALBARTIM'],'TANJUNG REDEB':['BALIKPAPAN','R15 KALBARTIM'],
-  'SINTANG':['KETAPANG','R15 KALBARTIM'],'KETAPANG':['KETAPANG','R15 KALBARTIM'],
-  'BANJARMASIN':['BANJARMASIN','R16 KALTENGSEL'],'BANJARBARU':['BANJARMASIN','R16 KALTENGSEL'],'BATULICIN':['BANJARMASIN','R16 KALTENGSEL'],'KOTABARU':['BANJARMASIN','R16 KALTENGSEL'],
-  'SAMPIT':['SAMPIT','R16 KALTENGSEL'],'PALANGKARAYA':['SAMPIT','R16 KALTENGSEL'],'PANGKALAN BUN':['SAMPIT','R16 KALTENGSEL'],'PANGKALANBUN':['SAMPIT','R16 KALTENGSEL'],
-  'BARABAI':['BARABAI','R16 KALTENGSEL'],'TANJUNG TABALONG':['BARABAI','R16 KALTENGSEL'],'TANAH GROGOT':['BARABAI','R16 KALTENGSEL']
+  // R14 BALI NUSRA
+  'DENPASAR':['DENPASAR NTB','R14 BALI NUSRA'],
+  'TABANAN':['DENPASAR NTB','R14 BALI NUSRA'],
+  'BADUNG':['DENPASAR NTB','R14 BALI NUSRA'],
+  'KLUNGKUNG':['DENPASAR NTB','R14 BALI NUSRA'],
+  'KARANGASEM':['DENPASAR NTB','R14 BALI NUSRA'],
+  'SINGARAJA':['DENPASAR NTB','R14 BALI NUSRA'],
+  'JEMBRANA':['DENPASAR NTB','R14 BALI NUSRA'],
+  'BIMA':['DENPASAR NTB','R14 BALI NUSRA'],
+  'DOMPU':['DENPASAR NTB','R14 BALI NUSRA'],
+  'SUMBAWA':['DENPASAR NTB','R14 BALI NUSRA'],
+  'MATARAM':['MATARAM','R14 BALI NUSRA'],
+  'PRAYA':['MATARAM','R14 BALI NUSRA'],
+  'LEMBAR':['MATARAM','R14 BALI NUSRA'],
+  'SELONG':['MATARAM','R14 BALI NUSRA'],
+  'PRINGGASELA':['MATARAM','R14 BALI NUSRA'],
+  'KUPANG':['NUSRA TIMUR','R14 BALI NUSRA'],
+  'KOTA SOE':['NUSRA TIMUR','R14 BALI NUSRA'],
+  'ATAMBUA':['NUSRA TIMUR','R14 BALI NUSRA'],
+  'KOTA KEFAMENANU':['NUSRA TIMUR','R14 BALI NUSRA'],
+  'MALAKA':['NUSRA TIMUR','R14 BALI NUSRA'],
+  'RUTENG':['NUSRA TIMUR','R14 BALI NUSRA'],
+  'WAINGAPU':['NUSRA TIMUR','R14 BALI NUSRA'],
+  'MAUMERE':['NUSRA TIMUR','R14 BALI NUSRA'],
+  'BAJAWA':['NUSRA TIMUR','R14 BALI NUSRA'],
+  'LABUAN BAJO':['NUSRA TIMUR','R14 BALI NUSRA'],
+  'ENDE':['NUSRA TIMUR','R14 BALI NUSRA'],
+
+  // R15 KALBARTIM
+  'PONTIANAK':['PONTIANAK','R15 KALBARTIM'],
+  'PONTIANAK BARAT':['PONTIANAK','R15 KALBARTIM'],
+  'SUNGAI PINYUH':['PONTIANAK','R15 KALBARTIM'],
+  'SINGKAWANG':['PONTIANAK','R15 KALBARTIM'],
+  'SAMBAS':['PONTIANAK','R15 KALBARTIM'],
+  'SAMARINDA SELATAN':['SAMARINDA','R15 KALBARTIM'],
+  'SAMARINDA UTARA':['SAMARINDA','R15 KALBARTIM'],
+  'TENGGARONG':['SAMARINDA','R15 KALBARTIM'],
+  'SEBULU':['SAMARINDA','R15 KALBARTIM'],
+  'SANGATTA':['SAMARINDA','R15 KALBARTIM'],
+  'BENGALON':['SAMARINDA','R15 KALBARTIM'],
+  'BONTANG':['SAMARINDA','R15 KALBARTIM'],
+  'BALIKPAPAN':['BALIKPAPAN','R15 KALBARTIM'],
+  'TANJUNG REDEB':['BALIKPAPAN','R15 KALBARTIM'],
+  'TANJUNG SELOR':['BALIKPAPAN','R15 KALBARTIM'],
+  'TARAKAN':['BALIKPAPAN','R15 KALBARTIM'],
+  'SINTANG':['SINTANG','R15 KALBARTIM'],
+  'NANGAPINOH':['SINTANG','R15 KALBARTIM'],
+  'SANGGAU':['SINTANG','R15 KALBARTIM'],
+  'NGABANG':['SINTANG','R15 KALBARTIM'],
+  'KETAPANG':['SINTANG','R15 KALBARTIM'],
+
+  // R16 KALTENGSEL
+  'BANJARMASIN SELATAN':['BANJARMASIN','R16 KALTENGSEL'],
+  'BANJARBARU':['BANJARMASIN','R16 KALTENGSEL'],
+  'KAPUAS':['BANJARMASIN','R16 KALTENGSEL'],
+  'BATULICIN':['BANJARMASIN','R16 KALTENGSEL'],
+  'KOTABARU':['BANJARMASIN','R16 KALTENGSEL'],
+  'SAMPIT':['SAMPIT','R16 KALTENGSEL'],
+  'PALANGKARAYA':['SAMPIT','R16 KALTENGSEL'],
+  'KATINGAN':['SAMPIT','R16 KALTENGSEL'],
+  'PANGKALANBUN':['SAMPIT','R16 KALTENGSEL'],
+  'BARABAI':['BARABAI','R16 KALTENGSEL'],
+  'TANJUNG TABALONG':['BARABAI','R16 KALTENGSEL'],
+  'TANAH GROGOT':['BARABAI','R16 KALTENGSEL'],
+  'MUARA TEWEH':['BARABAI','R16 KALTENGSEL'],
+
+  // R17 SULAWESI 1
+  'MAKASSAR UTARA':['MAKASSAR','R17 SULAWESI 1'],
+  'MAKASSAR SELATAN':['MAKASSAR','R17 SULAWESI 1'],
+  'MAROS':['MAKASSAR','R17 SULAWESI 1'],
+  'SIMBANG':['MAKASSAR','R17 SULAWESI 1'],
+  'PANGKAJANE':['MAKASSAR','R17 SULAWESI 1'],
+  'AMBON':['MAKASSAR','R17 SULAWESI 1'],
+  'NAMLEA':['MAKASSAR','R17 SULAWESI 1'],
+  'DOBO-MALUKU':['MAKASSAR','R17 SULAWESI 1'],
+  'SAUMLAKI':['MAKASSAR','R17 SULAWESI 1'],
+  'PARE-PARE':['PARE-PARE','R17 SULAWESI 1'],
+  'BALUSU':['PARE-PARE','R17 SULAWESI 1'],
+  'MARITENGNGAE':['PARE-PARE','R17 SULAWESI 1'],
+  'WATANG SAWITTO':['PARE-PARE','R17 SULAWESI 1'],
+  'WONOMULYO':['PARE-PARE','R17 SULAWESI 1'],
+  'BANGGAE':['PARE-PARE','R17 SULAWESI 1'],
+  'MAMUJU':['PARE-PARE','R17 SULAWESI 1'],
+  'TOPOYO':['PARE-PARE','R17 SULAWESI 1'],
+  'PALOPO':['PALOPO','R17 SULAWESI 1'],
+  'MASAMBA':['PALOPO','R17 SULAWESI 1'],
+  'BELOPA':['PALOPO','R17 SULAWESI 1'],
+  'RANTEPAO':['PALOPO','R17 SULAWESI 1'],
+  'ALLA':['PALOPO','R17 SULAWESI 1'],
+  'MANGKUTANA':['PALOPO','R17 SULAWESI 1'],
+  'MALILI':['PALOPO','R17 SULAWESI 1'],
+  'BONE-BONE':['PALOPO','R17 SULAWESI 1'],
+  'GORONTALO':['GORONTALO','R17 SULAWESI 1'],
+  'KWANDANG':['GORONTALO','R17 SULAWESI 1'],
+  'MARISA':['GORONTALO','R17 SULAWESI 1'],
+  'MOUTONG':['GORONTALO','R17 SULAWESI 1'],
+  'KOTAMOBAGU':['GORONTALO','R17 SULAWESI 1'],
+  'PALU':['PALU','R17 SULAWESI 1'],
+  'PARIGI PALU':['PALU','R17 SULAWESI 1'],
+  'KASIMBAR':['PALU','R17 SULAWESI 1'],
+  'TOLITOLI':['PALU','R17 SULAWESI 1'],
+  'LUWUK':['PALU','R17 SULAWESI 1'],
+  'PASANGKAYU':['PALU','R17 SULAWESI 1'],
+  'POSO':['PALU','R17 SULAWESI 1'],
+
+  // R18 SULAWESI 2
+  'SUNGGUMINASA':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'TINGGIMONCONG':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'TAKALAR':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'BINAMU':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'JAYAPURA':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'TIMIKA':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'SUBDIST BIAK':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'SUBDIST NABIRE':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'NABIRE':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'SUBDIST MERAUKE':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'SORONG':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'MANOKWARI':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'MERAUKE':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'SUBDIST FAK FAK':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'SUBDIST KAIMANA':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'BINTUNI':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'SERUI':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'BOVEN DIGOEL':['SUNGGUMINASA','R18 SULAWESI 2'],
+  'KENDARI':['KENDARI','R18 SULAWESI 2'],
+  'TINANGEA':['KENDARI','R18 SULAWESI 2'],
+  'UNAAHA':['KENDARI','R18 SULAWESI 2'],
+  'KOLAKA':['KENDARI','R18 SULAWESI 2'],
+  'POLEANG':['KENDARI','R18 SULAWESI 2'],
+  'BAU-BAU':['KENDARI','R18 SULAWESI 2'],
+  'SUBDIST MOROWALI':['KENDARI','R18 SULAWESI 2'],
+  'BONE':['BONE','R18 SULAWESI 2'],
+  'KAHU':['BONE','R18 SULAWESI 2'],
+  'SENGKANG':['BONE','R18 SULAWESI 2'],
+  'BULUKUMBA':['BONE','R18 SULAWESI 2'],
+  'SINJAI UTARA':['BONE','R18 SULAWESI 2'],
+  'MANADO':['MANADO','R18 SULAWESI 2'],
+  'MANADO BARAT':['MANADO','R18 SULAWESI 2'],
+  'AMURANG':['MANADO','R18 SULAWESI 2'],
+  'TERNATE':['MANADO','R18 SULAWESI 2'],
+  'TOBELO':['MANADO','R18 SULAWESI 2'],
+
+  // Alias singkatan umum yang sering dipakai di file AREA/MPP
+  'MKS UTARA':['MAKASSAR','R17 SULAWESI 1'],
+  'MKS SELATAN':['MAKASSAR','R17 SULAWESI 1'],
 };
 function depoMeta(depoName){
   const key=String(depoName||'').toUpperCase().trim();
@@ -2252,6 +2390,11 @@ function knjTimeStr(mins){
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
 }
 
+function knjSalesType(name){
+  // Tipe sales diambil dari kata pertama nama salesman (contoh: "TX2DA IRFAN JAMALUDIN" -> "TX2DA")
+  const w=String(name||'').trim().split(/\s+/)[0]||'';
+  return w||'LAINNYA';
+}
 function knjGrade(score){
   if(score>=90)return{g:'A',c:'#1B9860'};
   if(score>=75)return{g:'B',c:'#009B79'};
@@ -2264,7 +2407,7 @@ function knjAnalyze(rows){
   const bySales={};
   rows.forEach(r=>{
     const sls=r['Salesman']||'Unknown';
-    if(!bySales[sls])bySales[sls]={name:sls,code:r['Salesman External Code'],div:r['Salesman Division'],visits:[]};
+    if(!bySales[sls])bySales[sls]={name:sls,code:r['Salesman External Code'],div:knjSalesType(sls),visits:[]};
     bySales[sls].visits.push(r);
   });
 
@@ -2642,7 +2785,7 @@ function renderKunjungan(sheets){
     <option value="">Semua tanggal</option>${dateOpts}
   </select>
   <select class="knj-filter-sel" id="knj-area-sel" onchange="knjFilter()">
-    <option value="">Semua area</option>${areaOpts}
+    <option value="">Semua tipe sales</option>${areaOpts}
   </select>
   <select class="knj-filter-sel" id="knj-search" onchange="knjFilter()" style="min-width:220px;max-width:280px">
     <option value="">Semua salesman</option>${nameOpts}
@@ -3242,7 +3385,6 @@ function knjToggleDetail(idx, forceOpen){
   panel.innerHTML=`
     <div class="knj-detail-head" onclick="document.getElementById('knj-detail-panel').classList.toggle('minimized')" title="Klik header untuk minimize">
       <div style="display:flex;align-items:center;gap:8px">
-        <span class="grade-chip" style="background:${s.grade.c}">${s.grade.g}</span>
         <div>
           <strong style="font-size:.9rem">${s.name}</strong>
           <span style="color:var(--text3);font-size:.72rem;margin-left:8px">${s.date} · Score: ${s.score}/100</span>
@@ -3265,20 +3407,6 @@ function knjToggleDetail(idx, forceOpen){
         <div id="knj-map"></div>
       </div>
       <div class="knj-flag-col">
-        <div class="knj-flag-tbl-wrap">
-          <div class="knj-flag-tbl-lbl" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-            <span>Ringkasan Pelanggaran (${s.allFlags.length} total)</span>
-            <button id="knj-photoscan-btn-${idx}" onclick="knjScanPhotoSim(${idx})" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);color:#F59E0B;font-size:.6rem;font-weight:800;padding:4px 8px;border-radius:5px;cursor:pointer;white-space:nowrap;text-transform:none;letter-spacing:0">${s._photoScanned?'↻ Scan ulang foto':'Scan foto mirip'}</button>
-          </div>
-          <table class="knj-flag-tbl">
-            <thead><tr>
-              <th style="text-align:left;font-size:.57rem;color:var(--text2);padding:4px 6px;font-weight:800">JENIS</th>
-              <th style="text-align:center;font-size:.57rem;color:var(--text2);padding:4px 6px;font-weight:800;width:40px">JML</th>
-              <th style="text-align:right;font-size:.57rem;color:var(--text3);padding:4px 6px;font-weight:700;width:32px">▸</th>
-            </tr></thead>
-            <tbody>${flagSummaryRows}</tbody>
-          </table>
-        </div>
         <div class="knj-koreksi-wrap" id="knj-koreksi-wrap-${idx}">
           <div class="knj-koreksi-lbl"><span>Koreksi Titik Toko</span><span style="color:var(--gold)">${jauhVisits.length} perlu cek</span></div>
           ${jauhVisits.length===0?'<div class="knj-koreksi-empty">Tidak ada outlet dengan flag check-in jauh hari ini ✓</div>':jauhVisits.map(function(jv){
@@ -3858,7 +3986,6 @@ function renderBatalan(sheets){
     <thead>
       <tr>
         <th class="lft" style="min-width:180px">Driver</th>
-        <th>Grade</th>
         <th>Score</th>
         <th>Total Kiriman</th>
         <th>Berhasil</th>
@@ -3981,7 +4108,7 @@ function batRenderTable(drivers){
   const tb=document.getElementById('bat-sc-tbody');
   if(!tb)return;
   window._batDriversFiltered=drivers;
-  if(!drivers.length){tb.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--text3);padding:20px">Tidak ada data pada filter ini</td></tr>';return;}
+  if(!drivers.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--text3);padding:20px">Tidak ada data pada filter ini</td></tr>';return;}
   tb.innerHTML=drivers.map((dr,i)=>{
     const locColor=dr.locRate==null?'var(--text3)':dr.locRate>=80?'var(--teal)':dr.locRate>=60?'var(--gold)':'var(--red)';
     const seqColor=dr.seqRate==null?'var(--text3)':dr.seqRate>=70?'var(--teal)':dr.seqRate>=40?'var(--gold)':'var(--red)';
@@ -3992,7 +4119,6 @@ function batRenderTable(drivers){
     const gpsWarn=dr.gpsSuspect>0?`<span class="flag-chip" style="background:#EF447022;color:#EF4470;margin-left:4px">GPS jauh ${dr.gpsSuspect}x</span>`:'';
     return `<tr onclick="batToggleDetail(${i})" id="bat-row-${i}">
       <td class="lft"><div style="font-weight:700;font-size:.8rem">${dr.name}</div><div style="font-size:.65rem;color:var(--text3)">${dr.kode||''}</div></td>
-      <td><span class="grade-chip" style="background:${dr.grade.c}">${dr.grade.g}</span></td>
       <td>
         <div class="score-bar-wrap" style="justify-content:center">
           <div class="score-bar-track"><div class="score-bar-fill" style="width:${dr.score}%;background:${dr.grade.c}"></div></div>
@@ -4068,7 +4194,6 @@ function batToggleDetail(idx){
   panel.innerHTML=`
     <div class="knj-detail-head" onclick="document.getElementById('bat-detail-panel').classList.toggle('minimized')" title="Klik header untuk minimize">
       <div style="display:flex;align-items:center;gap:8px">
-        <span class="grade-chip" style="background:${dr.grade.c}">${dr.grade.g}</span>
         <div>
           <strong style="font-size:.9rem">${dr.name}</strong>
           <span style="color:var(--text3);font-size:.72rem;margin-left:8px">${dr.kode||''} · Score: ${dr.score}/100</span>
@@ -4252,7 +4377,7 @@ function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['mtd','kunjungan','batalan','anomali','jksed','insight'][i]===t));
   updateTabPill();
   if(t==='jksed'){ ensureJksEditorLoaded(); sendOmsetToJksEditor(); }
-  if(t==='insight'){ renderChartInsight(); }
+  if(t==='insight'){ renderAssDirection(); }
 }
 window.addEventListener('resize',updateTabPill);
 
@@ -4263,6 +4388,277 @@ function insightHeatColor(pct01,thresholds){
   if(pct01>=thresholds.mid)return{bg:'rgba(217,112,30,.18)',fg:'var(--gold)'};
   return{bg:'rgba(239,68,112,.18)',fg:'var(--red)'};
 }
+// ===================== AUTO DIRECTION ASS =====================
+// Engine deterministik: baca 4 sumber (pencapaian, kunjungan, anomali, batalan),
+// bandingkan ke ambang batas, lalu terbitkan task per salesman. Semua angka
+// dihitung dari data yg diupload — tidak ada nilai yang dikarang.
+const AD = {
+  EC_GOLDEN: GOLDEN, ROA_TARGET: CB_ROA_GOLDEN,
+  GEO_MIN: 95, JKS_MIN: 95, EC_RATE_MIN: 70,
+  KILAT_MIN_CNT: 5, ZERO_MIN_CNT: 5, WORKDUR_MIN: 420,
+  BAT_RATE_MAX: 10, LOC_MIN: 90,
+  PRIO_ORDER: {'KRITIS':0,'TINGGI':1,'SEDANG':2},
+  PRIO_COLOR: {'KRITIS':'var(--red)','TINGGI':'var(--gold)','SEDANG':'var(--blue-acc)'},
+  CAT_COLOR: {'Pencapaian':'#5B7CFA','Kunjungan':'#E5479B','Anomali':'#9366FF','Batalan':'#D9701E'}
+};
+let _adTasks=null, _adState={depo:'',prio:'',cat:''};
+
+function adBuildTasks(){
+  const T=[];
+  const sls=(S.data&&S.data.salesmen)||[];
+  const areaByName={}, areaByKode={};
+  sls.forEach(s=>{areaByName[(s.nama||'').toUpperCase().trim()]=s.area||'';areaByKode[s.kode]=s.area||'';});
+  const areaOf=n=>areaByName[(n||'').toUpperCase().trim()]||'';
+  const add=(prio,cat,name,depo,title,why,act,impact)=>{
+    T.push({prio,cat,sls:name,depo:depo||'—',title,why,act,impact:impact||0});
+  };
+
+  // ── 1. PENCAPAIAN (dBase + MPP) ──
+  ((S.data&&S.data.omsetRows)||[]).forEach(r=>{
+    const gap=r.gapVsTgt||0;
+    if(gap<0&&r.tgtFM>0){
+      const shortPct=Math.abs(gap)/r.tgtFM*100;
+      const p=shortPct>=20?'KRITIS':shortPct>=10?'TINGGI':'SEDANG';
+      add(p,'Pencapaian',r.nama,r.area,'Kejar gap omset '+juta(Math.abs(gap)),
+        ['Ach vs target '+pct(r.achVsTgt)+' — omset MTD '+juta(r.omsetTM)+' dari target '+juta(r.tgtFM),
+         'Kurang '+juta(Math.abs(gap))+' untuk sampai 100%'],
+        ['Breakdown gap ke sisa HK: butuh tambahan '+juta(Math.abs(gap))+' sampai tutup bulan',
+         'Prioritaskan outlet ROA aktif yang belum order bulan ini'],
+        Math.abs(gap));
+    }
+    if((r.growth||0)<0){
+      const p=r.growth<=-0.15?'KRITIS':r.growth<=-0.05?'TINGGI':'SEDANG';
+      add(p,'Pencapaian',r.nama,r.area,'Pulihkan growth '+pct(r.growth)+' vs LM',
+        ['Omset MTD '+juta(r.omsetTM)+' vs LM '+juta(r.omsetLM)+' (selisih '+juta(r.gapVsLM)+')'],
+        ['Cek outlet yang bulan lalu order tapi bulan ini nol — lihat tab Deteksi Anomali (Toko Mati / Drop Omset)'],
+        Math.abs(r.gapVsLM||0));
+    }
+    if((r.ecTM||0)<AD.EC_GOLDEN){
+      add((AD.EC_GOLDEN-r.ecTM)>=5?'TINGGI':'SEDANG','Pencapaian',r.nama,r.area,
+        'EC '+r.ecTM+' di bawah Golden '+AD.EC_GOLDEN,
+        ['EC TM '+r.ecTM+' vs Golden '+AD.EC_GOLDEN+' (kurang '+(AD.EC_GOLDEN-r.ecTM)+' outlet)','EC LM '+r.ecLM],
+        ['Tambah '+(AD.EC_GOLDEN-r.ecTM)+' outlet effective call — fokus outlet rute yang sering dilewati tanpa order'],0);
+    }
+    if((r.roaTM||0)<AD.ROA_TARGET){
+      const pctRoa=r.roaTM/AD.ROA_TARGET*100;
+      add(pctRoa<70?'TINGGI':'SEDANG','Pencapaian',r.nama,r.area,
+        'ROA '+r.roaTM+' ('+pctRoa.toFixed(0)+'% dari target CB '+AD.ROA_TARGET+')',
+        ['ROA TM '+r.roaTM+' vs ROA LM '+r.roaLM],
+        ['Aktifkan outlet non-ROA di rute — target tambahan '+(AD.ROA_TARGET-r.roaTM)+' outlet aktif'],0);
+    }
+  });
+  ((S.data&&S.data.epbRows)||[]).forEach(r=>{
+    if(r.strata1>0&&(r.totalPoint||0)<r.strata1){
+      add('SEDANG','Pencapaian',r.nama,r.area,'EPB belum tembus Strata 1',
+        ['Total point '+r.totalPoint+' vs target Strata 1 '+r.strata1+' (kurang '+(r.strata1-r.totalPoint)+' pt)'],
+        ['Dorong produk fokus (WFR/CSD/ROL/NXC) untuk nambah '+(r.strata1-r.totalPoint)+' point'],0);
+    }
+  });
+
+  // ── 2. KUNJUNGAN (eSuite) ──
+  const knj=window._knjData||[];
+  if(knj.length){
+    const byS={};
+    knj.forEach(s=>{
+      const k=s.name;
+      if(!byS[k])byS[k]={name:k,days:0,total:0,visited:0,geoOk:0,onR:0,offR:0,ec:0,workSum:0,workN:0,flags:{}};
+      const b=byS[k], st=s.stats||{};
+      b.days++; b.total+=st.total||0; b.visited+=st.actualVisited||0; b.geoOk+=st.scOnGeofence||0;
+      b.onR+=st.onRuteVisits||0; b.offR+=st.offRuteVisits||0; b.ec+=st.ec||0;
+      if(st.workDurMin!=null){b.workSum+=st.workDurMin;b.workN++;}
+      (s.allFlags||[]).forEach(f=>{b.flags[f.label]=(b.flags[f.label]||0)+1;});
+    });
+    Object.values(byS).forEach(b=>{
+      const depo=areaOf(b.name);
+      const geo=b.visited>0?Math.round(b.geoOk/b.visited*100):null;
+      const jksDen=b.total-b.offR, jks=jksDen>0?Math.round(b.onR/jksDen*100):null;
+      const ecR=b.total>0?Math.round(b.ec/b.total*100):null;
+      if(geo!=null&&geo<AD.GEO_MIN)
+        add(geo<80?'KRITIS':'TINGGI','Kunjungan',b.name,depo,'Geofencing '+geo+'% — check-in di luar titik toko',
+          [(b.visited-b.geoOk)+' dari '+b.visited+' check-in di luar radius toko ('+b.days+' hari data)'],
+          ['Validasi lapangan: dampingi 1 hari full untuk lihat pola check-in',
+           'Koreksi titik master outlet yang salah lewat tab Analisa Kunjungan → Koreksi Titik Toko'],0);
+      if(jks!=null&&jks<AD.JKS_MIN)
+        add(jks<80?'KRITIS':'TINGGI','Kunjungan',b.name,depo,'Kepatuhan rute (JKS) '+jks+'%',
+          [b.offR+' kunjungan off-rute dari total '+b.total+' visit'],
+          ['Review JKS: apakah rute perlu direstrukturisasi atau salesman yang tidak patuh'],0);
+      if(ecR!=null&&ecR<AD.EC_RATE_MIN)
+        add(ecR<50?'KRITIS':'TINGGI','Kunjungan',b.name,depo,'EC rate kunjungan '+ecR+'%',
+          [b.ec+' effective call dari '+b.total+' kunjungan'],
+          ['Coaching selling skill — banyak toko dikunjungi tapi tidak menghasilkan order'],0);
+      const kilat=(b.flags['Visit kilat']||0)+(b.flags['BMA + visit kilat']||0);
+      if(kilat>=AD.KILAT_MIN_CNT)
+        add(kilat>=15?'KRITIS':'TINGGI','Kunjungan',b.name,depo,kilat+'x visit kilat (<2 menit)',
+          [kilat+' kunjungan durasi di bawah 2 menit dalam '+b.days+' hari'],
+          ['Kunjungan terlalu cepat = indikasi check-in tanpa proses jualan. Verifikasi ke outlet.'],0);
+      const zero=b.flags['Nol order (non-BMA)']||0;
+      if(zero>=AD.ZERO_MIN_CNT)
+        add('SEDANG','Kunjungan',b.name,depo,zero+'x kunjungan nol order (non-BMA)',
+          [zero+' kunjungan tanpa order padahal barang tidak kosong'],
+          ['Cek alasan penolakan per outlet — kemungkinan stok toko masih penuh atau isu harga'],0);
+      if(b.workN>0){
+        const avgW=Math.round(b.workSum/b.workN);
+        if(avgW<AD.WORKDUR_MIN)
+          add(avgW<300?'TINGGI':'SEDANG','Kunjungan',b.name,depo,'Jam kerja rata-rata '+knjFormatDurHours(avgW),
+            ['Rata-rata '+knjFormatDurHours(avgW)+' per hari dari '+b.workN+' hari, standar minimal 7 jam'],
+            ['Cek jam mulai & selesai — apakah start terlambat atau pulang terlalu awal'],0);
+      }
+    });
+  }
+
+  // ── 3. ANOMALI (Fraud) ──
+  if(typeof _anmData!=='undefined'&&_anmData&&_anmData.plan){
+    const byS={};
+    _anmData.plan.forEach(r=>{
+      const k=r.sls||'(tanpa salesman)';
+      if(!byS[k])byS[k]={name:k,area:r.area||'',mati:0,matiVal:0,drop:0,dropVal:0,dbl:0,fak:0};
+      const b=byS[k];
+      const seen={};
+      (r.flags||[]).forEach(f=>{
+        if(f.cat==='mati'&&!seen.mati){b.mati++;b.matiVal+=(f.meta&&f.meta.lmVal)||0;seen.mati=1;}
+        if(f.cat==='drop'&&!seen.drop){b.drop++;b.dropVal+=(((f.meta&&f.meta.lmVal)||0)-((f.meta&&f.meta.tmVal)||0));seen.drop=1;}
+        if(f.cat==='double'&&!seen.dbl){b.dbl++;seen.dbl=1;}
+        if(f.cat==='faktur'&&!seen.fak){b.fak++;seen.fak=1;}
+      });
+    });
+    Object.values(byS).forEach(b=>{
+      const depo=b.area||areaOf(b.name);
+      if(b.mati>0)
+        add(b.mati>=10?'KRITIS':'TINGGI','Anomali',b.name,depo,'Reaktivasi '+b.mati+' toko mati',
+          [b.mati+' outlet aktif bulan lalu, nol order bulan ini','Omset LM yang hilang: '+juta(b.matiVal)],
+          ['Kunjungi ulang & cari akar masalah: pindah supplier, tutup, atau piutang',
+           'Export daftar dari tab Deteksi Anomali → ASS Visit Plan'],b.matiVal);
+      if(b.drop>0)
+        add(b.drop>=10?'TINGGI':'SEDANG','Anomali',b.name,depo,'Recovery '+b.drop+' toko drop omset',
+          [b.drop+' outlet turun tajam vs bulan lalu','Nilai penurunan: '+juta(b.dropVal)],
+          ['Prioritaskan outlet dengan penurunan terbesar untuk kunjungan ulang'],b.dropVal);
+      if(b.dbl>0)
+        add('TINGGI','Anomali',b.name,depo,'Verifikasi '+b.dbl+' indikasi toko double',
+          [b.dbl+' outlet terindikasi kembar (lokasi berdekatan + nama mirip)'],
+          ['Cek fisik ke lapangan — kalau benar dobel, ajukan penggabungan master outlet'],0);
+      if(b.fak>0)
+        add('KRITIS','Anomali',b.name,depo,'Audit '+b.fak+' indikasi pecah faktur',
+          [b.fak+' outlet dengan pola SKU mirip + faktur berdekatan'],
+          ['Audit dokumen faktur & konfirmasi langsung ke pemilik toko'],0);
+    });
+  }
+
+  // ── 4. BATALAN (Zyllem) ──
+  const bat=(window._batData&&window._batData.drivers)||[];
+  bat.forEach(d=>{
+    const depo=areaOf(d.name);
+    const rate=d.total>0?Math.round(d.batalan/d.total*100):0;
+    if(rate>AD.BAT_RATE_MAX)
+      add(rate>=25?'KRITIS':'TINGGI','Batalan',d.name,depo,'Batalan '+rate+'% ('+d.batalan+' dari '+d.total+' kiriman)',
+        ['Nilai batalan '+juta(d.batalanValue)+(d.topAlasan?' — alasan terbanyak: '+d.topAlasan.label+' ('+d.topAlasan.count+'x)':'')],
+        ['Telusuri alasan dominan bersama tim delivery & salesman terkait'],d.batalanValue);
+    if(d.locRate!=null&&d.locRate<AD.LOC_MIN)
+      add(d.locRate<70?'TINGGI':'SEDANG','Batalan',d.name,depo,'Location compliance '+d.locRate+'%',
+        ['Hanya '+d.locRate+'% pengiriman ter-konfirmasi di titik toko yang benar'+(d.gpsSuspect>0?' — '+d.gpsSuspect+' kiriman GPS jauh tapi status berhasil':'')],
+        ['Cek titik koordinat master outlet & disiplin scan di lokasi'],0);
+  });
+
+  T.sort((a,b)=>(AD.PRIO_ORDER[a.prio]-AD.PRIO_ORDER[b.prio])||(b.impact-a.impact));
+  return T;
+}
+
+function adSetFilter(k,v){_adState[k]=v;adRender();}
+
+function adFiltered(){
+  return (_adTasks||[]).filter(t=>
+    (!_adState.depo||t.depo===_adState.depo)&&
+    (!_adState.prio||t.prio===_adState.prio)&&
+    (!_adState.cat||t.cat===_adState.cat));
+}
+
+function adExportExcel(){
+  const list=adFiltered();
+  if(!list.length){alert('Tidak ada tugas pada filter ini.');return;}
+  const aoa=[['PRIORITAS','KATEGORI','DEPO','SALESMAN','TUGAS','TEMUAN','LANGKAH','NILAI TERDAMPAK (Rp)']];
+  list.forEach(t=>aoa.push([t.prio,t.cat,t.depo,t.sls,t.title,t.why.join(' | '),t.act.join(' | '),t.impact||'']));
+  const wb=XLSX.utils.book_new(), ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=[{wch:10},{wch:12},{wch:16},{wch:24},{wch:38},{wch:60},{wch:60},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws,'Auto Direction');
+  XLSX.writeFile(wb,'Auto_Direction_ASS_'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+
+function adRender(){
+  const holder=document.getElementById('insight-content');
+  const all=_adTasks||[], list=adFiltered();
+  const cnt=p=>all.filter(t=>t.prio===p).length;
+  const totalGap=((S.data&&S.data.omsetRows)||[]).reduce((a,r)=>a+((r.gapVsTgt||0)<0?Math.abs(r.gapVsTgt):0),0);
+  const depos=[...new Set(all.map(t=>t.depo))].sort();
+
+  const card=(lbl,val,sub,color)=>'<div class="knj-scard"><div class="knj-scard-lbl">'+lbl+'</div>'+
+    '<div class="knj-scard-val" style="color:'+color+'">'+val+'</div>'+
+    '<div class="knj-scard-sub">'+sub+'</div></div>';
+
+  let html='<div class="knj-sumrow" style="grid-template-columns:repeat(4,1fr)">'+
+    card('Total Tugas',all.length,'Dari 4 sumber data','var(--text)')+
+    card('Prioritas Kritis',cnt('KRITIS'),'Tangani minggu ini','var(--red)')+
+    card('Prioritas Tinggi',cnt('TINGGI'),'Jadwalkan bulan ini','var(--gold)')+
+    card('Total Gap vs Target',juta(totalGap),'Akumulasi kekurangan omset','var(--blue-acc)')+
+  '</div>';
+
+  html+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0">'+
+    '<select class="knj-filter-sel" onchange="adSetFilter(\'depo\',this.value)"><option value="">Semua depo</option>'+
+      depos.map(d=>'<option value="'+d+'"'+(_adState.depo===d?' selected':'')+'>'+d+'</option>').join('')+'</select>'+
+    '<select class="knj-filter-sel" onchange="adSetFilter(\'prio\',this.value)"><option value="">Semua prioritas</option>'+
+      ['KRITIS','TINGGI','SEDANG'].map(p=>'<option value="'+p+'"'+(_adState.prio===p?' selected':'')+'>'+p+'</option>').join('')+'</select>'+
+    '<select class="knj-filter-sel" onchange="adSetFilter(\'cat\',this.value)"><option value="">Semua kategori</option>'+
+      ['Pencapaian','Kunjungan','Anomali','Batalan'].map(c=>'<option value="'+c+'"'+(_adState.cat===c?' selected':'')+'>'+c+'</option>').join('')+'</select>'+
+    '<div style="flex:1"></div>'+
+    '<button class="btn-sm" onclick="adExportExcel()" style="background:var(--teal);color:#fff;border:none">⬇ Export Excel</button>'+
+  '</div>';
+
+  if(!list.length){
+    html+='<div class="empty-state"><h3>Tidak ada tugas pada filter ini</h3><p>Semua indikator di atas ambang batas, atau filter terlalu sempit.</p></div>';
+    holder.innerHTML=html;return;
+  }
+
+  // Grup per depo → salesman
+  const byDepo={};
+  list.forEach(t=>{(byDepo[t.depo]=byDepo[t.depo]||{})[t.sls]=(byDepo[t.depo][t.sls]||[]).concat([t]);});
+  Object.keys(byDepo).sort().forEach(depo=>{
+    const slsMap=byDepo[depo];
+    const depoCount=Object.values(slsMap).reduce((a,v)=>a+v.length,0);
+    html+='<div class="sec-header" style="margin-top:18px"><span class="sec-title">'+depo+'</span>'+
+      '<div class="sec-line"></div><span style="font-size:.68rem;color:var(--text3);font-weight:700">'+depoCount+' tugas</span></div>';
+    Object.keys(slsMap).sort().forEach(name=>{
+      const tasks=slsMap[name];
+      html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px">'+
+        '<div style="font-size:.85rem;font-weight:800;color:var(--text);margin-bottom:10px">'+name+
+        ' <span style="font-size:.65rem;color:var(--text3);font-weight:700">· '+tasks.length+' tugas</span></div>';
+      tasks.forEach(t=>{
+        html+='<div style="border-left:3px solid '+AD.PRIO_COLOR[t.prio]+';padding:8px 0 8px 12px;margin-bottom:10px">'+
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">'+
+            '<span style="font-size:.55rem;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:4px;background:'+AD.PRIO_COLOR[t.prio]+';color:#fff">'+t.prio+'</span>'+
+            '<span style="font-size:.55rem;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:4px;background:'+AD.CAT_COLOR[t.cat]+'22;color:'+AD.CAT_COLOR[t.cat]+'">'+t.cat+'</span>'+
+            '<span style="font-size:.8rem;font-weight:700;color:var(--text)">'+t.title+'</span>'+
+            (t.impact>0?'<span style="margin-left:auto;font-size:.7rem;font-weight:800;color:var(--gold)">'+juta(t.impact)+'</span>':'')+
+          '</div>'+
+          '<div style="font-size:.68rem;color:var(--text2);line-height:1.6">'+
+            t.why.map(w=>'• '+w).join('<br>')+'</div>'+
+          '<div style="font-size:.68rem;color:var(--teal);line-height:1.6;margin-top:4px">'+
+            t.act.map(a=>'→ '+a).join('<br>')+'</div>'+
+        '</div>';
+      });
+      html+='</div>';
+    });
+  });
+  holder.innerHTML=html;
+}
+
+function renderAssDirection(){
+  const holder=document.getElementById('insight-content');
+  if(!S.data||!S.data.omsetRows||!S.data.omsetRows.length){
+    holder.innerHTML='<div class="empty-state"><h3>Belum ada data</h3><p>Upload &amp; proses data dulu — Auto Direction butuh minimal MPP + dBase. Tambahkan eSuite, Zyllem, dan JKS untuk analisa kunjungan, batalan, dan anomali.</p></div>';
+    return;
+  }
+  _adTasks=adBuildTasks();
+  adRender();
+}
+
 function renderChartInsight(){
   const holder=document.getElementById('insight-content');
   if(!S.data||!S.data.omsetRows||!S.data.omsetRows.length){
@@ -4485,142 +4881,144 @@ function toggleTheme(){
 function showExport(){document.getElementById('export-overlay').classList.add('show');}
 function hideExport(){document.getElementById('export-overlay').classList.remove('show');}
 
-function showCaptureMenu(){
-  document.getElementById('capture-overlay').style.display='flex';
-  document.getElementById('capture-progress').style.display='none';
-}
-function hideCaptureMenu(){
-  document.getElementById('capture-overlay').style.display='none';
+function getActiveTabId(){
+  const ids=['mtd','kunjungan','batalan','anomali','jksed','insight'];
+  return ids.find(x=>document.getElementById('tab-'+x).style.display!=='none')||'mtd';
 }
 
-async function doCapture(mode){
+async function doCaptureCombined(){
   if(typeof html2canvas==='undefined'){alert('html2canvas belum load, coba refresh dulu.');return;}
+  if(!S.data){alert('Belum ada data. Upload & proses data dulu.');return;}
+  const overlay=document.getElementById('capture-overlay');
   const progEl=document.getElementById('capture-progress');
   const msgEl=document.getElementById('capture-msg');
+  overlay.style.display='flex';
   progEl.style.display='block';
-  document.querySelector('#capture-overlay > div').style.display='none';
-
-  const names={kpi:'KPI_Summary',omset:'Analisa_Omset_EC',epb:'EPB_Point_ROA',full:'Full_Dashboard'};
   const bgColor=getComputedStyle(document.documentElement).getPropertyValue('--navy').trim()||'#111114';
+  const originalTab=getActiveTabId();
+
+  // Flatten computed color/background/border from the LIVE element tree onto the CLONED
+  // tree html2canvas renders from. This avoids invisible text when CSS custom properties
+  // (var(--text) etc) don't resolve reliably inside html2canvas's cloned document.
+  const flattenColors=(liveRoot,cloneRoot)=>{
+    const liveEls=[liveRoot,...liveRoot.querySelectorAll('*')];
+    const cloneEls=[cloneRoot,...cloneRoot.querySelectorAll('*')];
+    const n=Math.min(liveEls.length,cloneEls.length);
+    for(let i=0;i<n;i++){
+      const cs=getComputedStyle(liveEls[i]);
+      cloneEls[i].style.color=cs.color;
+      cloneEls[i].style.backgroundColor=cs.backgroundColor;
+      cloneEls[i].style.borderColor=cs.borderColor;
+    }
+  };
+
+  const captureEl=async(sel)=>{
+    const el=document.querySelector(sel);
+    if(!el)return null;
+    el.querySelectorAll('.tbl-wrap,.epb-scroll-wrap').forEach(w=>{w.scrollLeft=0;});
+    el.scrollIntoView({block:'start'});
+    window.scrollTo(0,0);
+    await new Promise(r=>setTimeout(r,300));
+    const innerTable=el.querySelector('table');
+    const fullW=Math.max(innerTable?innerTable.scrollWidth:0, el.scrollWidth, el.offsetWidth, 1200)+40;
+    const fullH=el.scrollHeight;
+    return await html2canvas(el,{
+      scale:2,
+      useCORS:true,
+      allowTaint:true,
+      backgroundColor:bgColor,
+      x:0, y:0,
+      scrollX:-window.scrollX,
+      scrollY:-window.scrollY,
+      windowWidth:fullW,
+      width:fullW,
+      height:fullH,
+      logging:false,
+      onclone:(doc)=>{
+        const cloned=doc.querySelector(sel);
+        if(cloned){
+          cloned.style.height='auto';
+          cloned.style.overflow='visible';
+          cloned.style.maxHeight='none';
+          cloned.style.width=fullW+'px';
+        }
+        doc.querySelectorAll('.tbl-wrap,.epb-scroll-wrap').forEach(w=>{
+          w.style.overflow='visible';
+          w.style.maxWidth='none';
+          w.style.width='max-content';
+        });
+        doc.querySelectorAll('thead th').forEach(th=>{th.style.position='static';});
+        doc.querySelectorAll(sel+' td, '+sel+' th').forEach(c=>{
+          c.style.textOverflow='clip';
+          c.style.overflow='visible';
+          c.style.whiteSpace='nowrap';
+        });
+        if(cloned)flattenColors(el,cloned);
+      }
+    });
+  };
 
   try {
     msgEl.textContent='Menyiapkan...';
-    // Hide the capture overlay itself so it doesn't appear in screenshot
-    document.getElementById('capture-overlay').style.display='none';
+    overlay.style.display='none';
     await new Promise(r=>setTimeout(r,100));
 
-    // For partial sections: clone the element into a temp off-screen div
-    // so we get full scroll height without visible-area clipping
-    const captureEl=async(sel)=>{
-      const el=document.querySelector(sel);
-      if(!el)return null;
-      // Scroll element into view then wait for paint
-      el.scrollIntoView({block:'start'});
-      window.scrollTo(0,0);
-      await new Promise(r=>setTimeout(r,300));
-      const innerTable=el.querySelector('table');
-      const fullW=Math.max(innerTable?innerTable.scrollWidth:0, el.scrollWidth, el.offsetWidth, 1200)+40;
-      const fullH=el.scrollHeight;
-      return await html2canvas(el,{
-        scale:2,
-        useCORS:true,
-        allowTaint:true,
-        backgroundColor:bgColor,
-        x:0, y:0,
-        scrollX:-window.scrollX,
-        scrollY:-window.scrollY,
-        windowWidth:fullW,
-        width:fullW,
-        height:fullH,
-        logging:false,
-        onclone:(doc)=>{
-          // Make cloned sections fully visible, no clipping on any scrollable wrapper
-          const cloned=doc.querySelector(sel);
-          if(cloned){
-            cloned.style.height='auto';
-            cloned.style.overflow='visible';
-            cloned.style.maxHeight='none';
-            cloned.style.width=fullW+'px';
-          }
-          doc.querySelectorAll('.tbl-wrap,.epb-scroll-wrap').forEach(w=>{
-            w.style.overflow='visible';
-            w.style.maxWidth='none';
-            w.style.width='max-content';
-          });
-          // Sticky headers render unreliably in html2canvas snapshots; make static for capture
-          doc.querySelectorAll('thead th').forEach(th=>{th.style.position='static';});
-        }
-      });
-    };
+    const canvases=[];
+    const push=cv=>{if(cv)canvases.push(cv);};
 
-    let merged;
-    if(mode==='full'){
-      msgEl.textContent='Merender full dashboard...';
-      window.scrollTo(0,0);
-      await new Promise(r=>setTimeout(r,400));
-      merged=await html2canvas(document.getElementById('dashboard'),{
-        scale:1.5,
-        useCORS:true,allowTaint:true,
-        backgroundColor:bgColor,
-        scrollX:0,scrollY:0,
-        windowWidth:document.getElementById('dashboard').scrollWidth,
-        width:document.getElementById('dashboard').scrollWidth,
-        height:document.getElementById('dashboard').scrollHeight,
-        logging:false,
-        onclone:(doc)=>{
-          doc.querySelectorAll('[style*="overflow"]').forEach(el=>el.style.overflow='visible');
-          doc.querySelectorAll('[style*="max-height"]').forEach(el=>el.style.maxHeight='none');
-          doc.querySelectorAll('.tbl-wrap,.epb-scroll-wrap').forEach(w=>{
-            w.style.overflow='visible';
-            w.style.maxWidth='none';
-            w.style.width='max-content';
-          });
-          doc.querySelectorAll('thead th').forEach(th=>{th.style.position='static';});
-        }
-      });
-    } else {
-      const sels={
-        kpi:['#section-kpi','#section-depot'],
-        omset:['#section-omset-table'],
-        epb:['#section-epb-table']
-      }[mode]||[];
+    // Bagian 1 & 2: Analisa Omset & EC + EPB & ROA per Salesman (tab Summary MTD)
+    switchTab('mtd');
+    if(typeof closeAllFilters==='function')closeAllFilters();
+    await new Promise(r=>setTimeout(r,250));
+    msgEl.textContent='Merender Analisa Omset & EC...';
+    push(await captureEl('#section-omset-table'));
+    msgEl.textContent='Merender Analisa EPB & ROA...';
+    push(await captureEl('#section-epb-table'));
 
-      const canvases=[];
-      for(let i=0;i<sels.length;i++){
-        msgEl.textContent=`Merender bagian ${i+1}/${sels.length}...`;
-        const cv=await captureEl(sels[i]);
-        if(cv)canvases.push(cv);
-      }
-      if(!canvases.length)throw new Error('Tidak ada elemen yang berhasil di-capture');
+    // Bagian 3: tab bar + Analisa Kunjungan (filter + KPI + tabel scorecard)
+    switchTab('kunjungan');
+    // Tutup panel detail salesman & popup filter kolom biar gak ikut ke-capture
+    const knjDetail=document.getElementById('knj-detail-panel');
+    if(knjDetail){knjDetail.classList.remove('show','minimized');knjDetail._openIdx=null;}
+    if(typeof closeAllFilters==='function')closeAllFilters();
+    await new Promise(r=>setTimeout(r,300));
+    msgEl.textContent='Merender Analisa Kunjungan...';
+    push(await captureEl('.tab-bar'));
+    push(await captureEl('#kunj-content'));
 
-      // Merge vertically
-      const maxW=Math.max(...canvases.map(cv=>cv.width));
-      const totalH=canvases.reduce((a,cv)=>a+cv.height,0);
-      const mc=document.createElement('canvas');
-      mc.width=maxW; mc.height=totalH;
-      const ctx=mc.getContext('2d');
-      ctx.fillStyle=bgColor; ctx.fillRect(0,0,maxW,totalH);
-      let y=0;
-      canvases.forEach(cv=>{ctx.drawImage(cv,(maxW-cv.width)/2,y);y+=cv.height;});
-      merged=mc;
-    }
+    // Bagian 4: tab bar + kartu Deteksi Anomali
+    switchTab('anomali');
+    await new Promise(r=>setTimeout(r,300));
+    msgEl.textContent='Merender Deteksi Anomali...';
+    push(await captureEl('.tab-bar'));
+    push(await captureEl('#anm-cards-row'));
+
+    switchTab(originalTab);
+
+    if(!canvases.length)throw new Error('Tidak ada elemen yang berhasil di-capture');
+
+    const maxW=Math.max(...canvases.map(cv=>cv.width));
+    const totalH=canvases.reduce((a,cv)=>a+cv.height,0);
+    const mc=document.createElement('canvas');
+    mc.width=maxW; mc.height=totalH;
+    const ctx=mc.getContext('2d');
+    ctx.fillStyle=bgColor; ctx.fillRect(0,0,maxW,totalH);
+    let y=0;
+    canvases.forEach(cv=>{ctx.drawImage(cv,(maxW-cv.width)/2,y);y+=cv.height;});
 
     msgEl.textContent='Menyimpan file...';
     const ts=new Date().toISOString().slice(0,13).replace('T','_');
     const link=document.createElement('a');
-    link.download='SuperMonitoring_'+names[mode]+'_'+ts+'.png';
-    link.href=merged.toDataURL('image/png',1.0);
+    link.download='SuperMonitoring_Kunjungan_Omset_EPB_'+ts+'.png';
+    link.href=mc.toDataURL('image/png',1.0);
     link.click();
 
-    hideCaptureMenu();
-    document.querySelector('#capture-overlay > div').style.display='block';
-    document.getElementById('capture-overlay').style.display='none';
+    overlay.style.display='none';
+
   } catch(e){
+    switchTab(originalTab);
     msgEl.textContent='Error: '+e.message;
-    setTimeout(()=>{
-      hideCaptureMenu();
-      document.querySelector('#capture-overlay > div').style.display='block';
-    },2000);
+    setTimeout(()=>{overlay.style.display='none';},2500);
   }
 }
 
@@ -5490,7 +5888,7 @@ function anmRenderUnified(){
   const showTglFilter = _anmState.activeCats.has('faktur');
 
   el.innerHTML =
-  '<div class="knj-sumrow" style="grid-template-columns:repeat(4,1fr)">'+cards+'</div>' +
+  '<div class="knj-sumrow" id="anm-cards-row" style="grid-template-columns:repeat(4,1fr)">'+cards+'</div>' +
   '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0">' +
     (showTglFilter?'<select class="knj-filter-sel" onchange="anmSetTglFilter(this.value)"><option value="">Semua tanggal</option>'+dateOpts+'</select>':'') +
     '<select class="knj-filter-sel" onchange="anmSetDepoFilter(this.value)"><option value="">Semua depo</option>'+depoOpts+'</select>' +
