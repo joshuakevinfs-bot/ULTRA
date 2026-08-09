@@ -1517,6 +1517,11 @@ async function pushToSupabase(){
   const setBadge=(txt,color)=>{if(badge){badge.textContent=txt;badge.style.color=color;}};
   try{
     setBadge('☁ Mengirim ke cloud...','var(--gold)');
+
+    // Diagnostik: pastikan sesi login beneran aktif sebelum push
+    const{data:{user},error:userErr}=await sb.auth.getUser();
+    if(userErr||!user)throw new Error('Sesi login tidak terdeteksi: '+(userErr?userErr.message:'user null')+'. Coba logout & login ulang.');
+
     const{salesmen,omsetRows,epbRows,jksOutlets,txTM,periode}=S.data;
     if(!periode)throw new Error('Periode tidak terdeteksi');
 
@@ -1533,7 +1538,7 @@ async function pushToSupabase(){
       }));
       for(let i=0;i<rows.length;i+=500){
         const{error}=await sb.from('outlet_master').upsert(rows.slice(i,i+500),{onConflict:'kd_outlet,depo'});
-        if(error)throw new Error('outlet_master: '+error.message);
+        if(error)throw new Error('outlet_master: '+error.message+(error.details?' | details: '+error.details:'')+(error.hint?' | hint: '+error.hint:'')+' | code: '+error.code);
       }
     }
 
@@ -1549,7 +1554,7 @@ async function pushToSupabase(){
       }));
       for(let i=0;i<rows.length;i+=500){
         const{error}=await sb.from('salesman_summary').upsert(rows.slice(i,i+500),{onConflict:'kd_salesman,depo,bulan'});
-        if(error)throw new Error('salesman_summary: '+error.message);
+        if(error)throw new Error('salesman_summary: '+error.message+(error.details?' | details: '+error.details:'')+(error.hint?' | hint: '+error.hint:'')+' | code: '+error.code);
       }
     }
 
@@ -1564,12 +1569,11 @@ async function pushToSupabase(){
       }));
       for(let i=0;i<rows.length;i+=500){
         const{error}=await sb.from('raw_transaksi').insert(rows.slice(i,i+500));
-        if(error)throw new Error('raw_transaksi: '+error.message);
+        if(error)throw new Error('raw_transaksi: '+error.message+(error.details?' | details: '+error.details:'')+(error.hint?' | hint: '+error.hint:'')+' | code: '+error.code);
       }
     }
 
-    // 4) sync_log — catat bahwa sync ini berhasil
-    const{data:{user}}=await sb.auth.getUser();
+    // 4) sync_log — catat bahwa sync ini berhasil (pakai `user` yang sudah dicek di awal fungsi)
     await sb.from('sync_log').insert({
       depo:mainDepo,jenis_file:'Full Sync',waktu_sync:new Date().toISOString(),
       jumlah_file:Object.keys(S.files||{}).filter(k=>S.files[k]&&S.files[k].length).length,
