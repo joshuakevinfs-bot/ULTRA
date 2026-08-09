@@ -1515,12 +1515,16 @@ async function processData(){
 async function pushToSupabase(){
   const badge=document.getElementById('sb-sync-badge');
   const setBadge=(txt,color)=>{if(badge){badge.textContent=txt;badge.style.color=color;}};
+  let currentUserId='(belum diketahui)';
   try{
     setBadge('☁ Mengirim ke cloud...','var(--gold)');
 
     // Diagnostik: pastikan sesi login beneran aktif sebelum push
     const{data:{user},error:userErr}=await sb.auth.getUser();
     if(userErr||!user)throw new Error('Sesi login tidak terdeteksi: '+(userErr?userErr.message:'user null')+'. Coba logout & login ulang.');
+    currentUserId=user.id;
+    console.log('[ULTRA] Logged in as:',user.email,'UID:',user.id);
+    setBadge('☁ UID: '+user.id.slice(0,8)+'... — mengirim...','var(--gold)');
 
     const{salesmen,omsetRows,epbRows,jksOutlets,txTM,periode}=S.data;
     if(!periode)throw new Error('Periode tidak terdeteksi');
@@ -1582,8 +1586,8 @@ async function pushToSupabase(){
 
     setBadge('☁ Tersinkron ke cloud','var(--green)');
   }catch(e){
-    console.error('pushToSupabase error:',e);
-    setBadge('☁ Gagal sync: '+e.message,'var(--red)');
+    console.error('pushToSupabase error:',e,'UID:',currentUserId);
+    setBadge('☁ Gagal sync (UID: '+currentUserId+'): '+e.message,'var(--red)');
   }
 }
 
