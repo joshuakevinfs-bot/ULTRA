@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ULTRA Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root{--navy:#111114;--navy2:#19191E;--navy3:#232329;--card:#1C1C22;--card2:#232329;--teal:#009B79;--teal2:#00805F;--gold:#D9701E;--red:#EF4470;--green:#1B9860;--blue-acc:#5B7CFA;--purple:#9366FF;--text:#FFFFFF;--text2:#B8BAC6;--text3:#7A7C8C;--border:rgba(255,255,255,0.08);--shadow:0 8px 24px rgba(0,0,0,.35);--shadow-sm:0 2px 10px rgba(0,0,0,.25);--radius-lg:20px;--radius-md:16px;--radius-sm:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh}
+.hidden{display:none!important}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;box-shadow:var(--shadow-sm)}
+.btn{padding:9px 18px;border-radius:999px;font-size:.8rem;font-weight:700;border:none;cursor:pointer;transition:all .15s}
+.btn:hover{opacity:.88}
+.btn-teal{background:var(--teal);color:#fff}
+.btn-ghost{background:var(--navy3);border:1px solid var(--border);color:var(--text2)}
+input,select{background:var(--navy2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:.82rem}
+.top-bar{background:var(--navy2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+.tl-word{font-size:1.3rem;font-weight:900;letter-spacing:.5px}
+.tl-word span{color:var(--teal)}
+.tl-tagline{font-size:.62rem;color:var(--text3);font-weight:600;letter-spacing:.3px}
+.container{max-width:1400px;margin:0 auto;padding:24px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px}
+.kpi-lbl{font-size:.65rem;font-weight:800;letter-spacing:.4px;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
+.kpi-val{font-size:1.7rem;font-weight:900;line-height:1.1}
+.kpi-sub{font-size:.68rem;color:var(--text3);margin-top:4px}
+.sec-title{font-size:.9rem;font-weight:800;margin:28px 0 12px;display:flex;align-items:center;gap:10px}
+.sec-title .n{background:var(--navy3);color:var(--text2);font-size:.68rem;padding:2px 9px;border-radius:999px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{text-align:left;padding:10px 12px;color:var(--text3);font-weight:800;font-size:.65rem;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap}
+th:hover{color:var(--text)}
+td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr.depo-row{cursor:pointer;transition:background .12s}
+tr.depo-row:hover{background:var(--navy3)}
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);overflow:auto;box-shadow:var(--shadow-sm)}
+.pill{font-size:.62rem;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill-green{background:rgba(27,152,96,.15);color:#4ADE9A}
+.pill-gold{background:rgba(217,112,30,.15);color:#F0A868}
+.pill-red{background:rgba(239,68,112,.15);color:#F58AA0}
+.pill-gray{background:var(--navy3);color:var(--text3)}
+.detail-panel{display:none;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);margin-top:14px;padding:20px;box-shadow:var(--shadow)}
+.detail-panel.show{display:block}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-state h3{color:var(--text2);font-size:1rem;margin-bottom:6px}
+.empty-state p{font-size:.8rem}
+.loader{width:20px;height:20px;border:2.5px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
+.tx-search{display:flex;gap:8px;margin-bottom:14px}
+.tx-search input{flex:1}
+.close-x{cursor:pointer;color:var(--text3);font-size:1.1rem;background:none;border:none}
+.close-x:hover{color:var(--text)}
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login-wrap">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:5px;margin-bottom:8px">
+    <div class="tl-word" style="font-size:1.8rem">ULTRA <span>ADMIN</span></div>
+    <div class="tl-tagline">National Real-Time Monitoring</div>
+  </div>
+  <div style="width:320px" class="card">
+    <div style="font-size:.9rem;font-weight:800;margin-bottom:14px">Login Admin</div>
+    <input type="email" id="login-email" placeholder="Email" autocomplete="username" style="width:100%;margin-bottom:10px">
+    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" style="width:100%;margin-bottom:14px">
+    <button id="login-btn" class="btn btn-teal" style="width:100%" onclick="doLogin()">Masuk</button>
+    <div id="login-error" style="color:var(--red);font-size:.72rem;margin-top:10px;display:none"></div>
+  </div>
+</div>
+
+<div id="app-screen" class="hidden">
+  <div class="top-bar">
+    <div>
+      <div class="tl-word">ULTRA <span>ADMIN</span></div>
+      <div class="tl-tagline">National Real-Time Monitoring</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <span id="last-refresh" style="font-size:.68rem;color:var(--text3)"></span>
+      <button class="btn btn-ghost" onclick="loadAll()">↻ Refresh</button>
+      <button class="btn btn-ghost" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px">
+      <select id="bulan-filter" onchange="renderNational()"></select>
+      <span id="loading-indicator" class="hidden loader"></span>
+    </div>
+
+    <div id="national-kpi" class="kpi-grid"></div>
+
+    <div class="sec-title">Status per depo <span class="n" id="depo-count">0</span></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortDepo('depo')">Depo</th>
+            <th onclick="sortDepo('sls')">Jml SLS</th>
+            <th onclick="sortDepo('omsetTM')">Omset TM</th>
+            <th onclick="sortDepo('ach')">Avg Ach%</th>
+            <th onclick="sortDepo('growth')">Growth</th>
+            <th onclick="sortDepo('ec')">Avg EC</th>
+            <th onclick="sortDepo('lastSync')">Last Sync</th>
+          </tr>
+        </thead>
+        <tbody id="depo-tbody"></tbody>
+      </table>
+    </div>
+
+    <div id="depo-detail" class="detail-panel"></div>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://mfynnbiehjvtnpknayxb.supabase.co';
+const SB_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1meW5uYmllaGp2dG5wa25heXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYyNzk3NDgsImV4cCI6MjEwMTg1NTc0OH0.c0tVa4ThmFoILyOuZqnLlx5CmfcAw0Vel0fw6BcRZ-8';
+const sb=window.supabase.createClient(SB_URL,SB_ANON_KEY);
+
+let ALL_SUMMARY=[],ALL_SYNCLOG=[],DEPO_ROWS=[],SORT_STATE={key:'omsetTM',dir:-1};
+
+async function checkSession(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app-screen').classList.remove('hidden');
+    loadAll();
+  } else {
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('app-screen').classList.add('hidden');
+  }
+}
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  const errEl=document.getElementById('login-error');
+  const btn=document.getElementById('login-btn');
+  errEl.style.display='none';
+  if(!email||!password){errEl.textContent='Isi email & password dulu.';errEl.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Memproses...';
+  const{error}=await sb.auth.signInWithPassword({email,password});
+  btn.disabled=false;btn.textContent='Masuk';
+  if(error){errEl.textContent='Login gagal: '+error.message;errEl.style.display='block';return;}
+  checkSession();
+}
+async function doLogout(){
+  await sb.auth.signOut();
+  checkSession();
+}
+document.addEventListener('DOMContentLoaded',checkSession);
+
+function juta(v){
+  if(v==null||isNaN(v))return'—';
+  const a=Math.abs(v),s=v<0?'-':'';
+  if(a>=1e9)return s+(a/1e9).toFixed(2)+'M';
+  if(a>=1e6)return s+(a/1e6).toFixed(1)+' Jt';
+  if(a>=1e3)return s+(a/1e3).toFixed(0)+'K';
+  return s+a.toFixed(0);
+}
+function pct(v){if(v==null||isNaN(v))return'—';return(v*100).toFixed(1)+'%';}
+function timeAgo(iso){
+  if(!iso)return'belum pernah';
+  const diff=(Date.now()-new Date(iso).getTime())/1000;
+  if(diff<3600)return Math.floor(diff/60)+' menit lalu';
+  if(diff<86400)return Math.floor(diff/3600)+' jam lalu';
+  return Math.floor(diff/86400)+' hari lalu';
+}
+function syncPill(iso){
+  if(!iso)return'<span class="pill pill-gray">Belum sync</span>';
+  const diff=(Date.now()-new Date(iso).getTime())/1000;
+  if(diff<86400)return'<span class="pill pill-green">'+timeAgo(iso)+'</span>';
+  if(diff<3*86400)return'<span class="pill pill-gold">'+timeAgo(iso)+'</span>';
+  return'<span class="pill pill-red">'+timeAgo(iso)+'</span>';
+}
+
+async function loadAll(){
+  const ind=document.getElementById('loading-indicator');
+  ind.classList.remove('hidden');
+  document.getElementById('last-refresh').textContent='Memuat...';
+  try{
+    const[summaryRes,syncRes]=await Promise.all([
+      sb.from('salesman_summary').select('*').order('bulan',{ascending:false}),
+      sb.from('sync_log').select('*').order('waktu_sync',{ascending:false})
+    ]);
+    if(summaryRes.error)throw summaryRes.error;
+    if(syncRes.error)throw syncRes.error;
+    ALL_SUMMARY=summaryRes.data||[];
+    ALL_SYNCLOG=syncRes.data||[];
+
+    const bulanSel=document.getElementById('bulan-filter');
+    const bulanList=[...new Set(ALL_SUMMARY.map(r=>r.bulan))].sort().reverse();
+    bulanSel.innerHTML=bulanList.map(b=>'<option value="'+b+'">'+b+'</option>').join('')||'<option value="">Belum ada data</option>';
+
+    renderNational();
+    document.getElementById('last-refresh').textContent='Update: '+new Date().toLocaleTimeString('id-ID');
+  }catch(e){
+    console.error(e);
+    document.getElementById('last-refresh').textContent='Gagal memuat: '+e.message;
+  }
+  ind.classList.add('hidden');
+}
+
+function renderNational(){
+  const bulan=document.getElementById('bulan-filter').value;
+  const rows=ALL_SUMMARY.filter(r=>r.bulan===bulan);
+
+  const byDepo={};
+  rows.forEach(r=>{
+    const d=r.depo||'(tanpa depo)';
+    if(!byDepo[d])byDepo[d]={depo:d,sls:0,omsetTM:0,omsetLM:0,achSum:0,ecSum:0,roaSum:0,epbSum:0};
+    const b=byDepo[d];
+    b.sls++;b.omsetTM+=r.omset_tm||0;b.omsetLM+=r.omset_lm||0;
+    b.achSum+=r.achievement||0;b.ecSum+=r.ec_tm||0;b.roaSum+=r.roa||0;b.epbSum+=r.total_epb||0;
+  });
+  const lastSyncByDepo={};
+  ALL_SYNCLOG.forEach(s=>{if(!lastSyncByDepo[s.depo])lastSyncByDepo[s.depo]=s.waktu_sync;});
+
+  DEPO_ROWS=Object.values(byDepo).map(b=>({
+    depo:b.depo,sls:b.sls,omsetTM:b.omsetTM,omsetLM:b.omsetLM,
+    ach:b.sls?b.achSum/b.sls:0,growth:b.omsetLM>0?(b.omsetTM-b.omsetLM)/b.omsetLM:0,
+    ec:b.sls?b.ecSum/b.sls:0,roa:b.sls?b.roaSum/b.sls:0,epbSum:b.epbSum,
+    lastSync:lastSyncByDepo[b.depo]||null
+  }));
+
+  const totalOmsetTM=rows.reduce((a,r)=>a+(r.omset_tm||0),0);
+  const totalOmsetLM=rows.reduce((a,r)=>a+(r.omset_lm||0),0);
+  const totalGrowth=totalOmsetLM>0?(totalOmsetTM-totalOmsetLM)/totalOmsetLM:0;
+  const avgAch=rows.length?rows.reduce((a,r)=>a+(r.achievement||0),0)/rows.length:0;
+  const avgEC=rows.length?rows.reduce((a,r)=>a+(r.ec_tm||0),0)/rows.length:0;
+  const depoSynced=DEPO_ROWS.filter(d=>d.lastSync).length;
+
+  document.getElementById('national-kpi').innerHTML=
+    kpi('Total Omset TM',juta(totalOmsetTM),'Nasional bulan ini','var(--text)')+
+    kpi('Growth vs LM',pct(totalGrowth),'Total omset LM: '+juta(totalOmsetLM),totalGrowth>=0?'var(--green)':'var(--red)')+
+    kpi('Avg Achievement',pct(avgAch),rows.length+' salesman','var(--blue-acc)')+
+    kpi('Avg EC',avgEC.toFixed(1),'Rata-rata effective call','var(--purple)')+
+    kpi('Depo Tersinkron',depoSynced+' / '+DEPO_ROWS.length,'Depo yang sudah push data','var(--teal)');
+
+  document.getElementById('depo-count').textContent=DEPO_ROWS.length;
+  sortDepo(SORT_STATE.key,true);
+}
+
+function kpi(lbl,val,sub,color){
+  return'<div class="kpi-card"><div class="kpi-lbl">'+lbl+'</div>'+
+    '<div class="kpi-val" style="color:'+color+'">'+val+'</div>'+
+    '<div class="kpi-sub">'+sub+'</div></div>';
+}
+
+function sortDepo(key,keepDir){
+  if(!keepDir){
+    if(SORT_STATE.key===key)SORT_STATE.dir*=-1;else{SORT_STATE.key=key;SORT_STATE.dir=-1;}
+  }
+  const{key:k,dir}=SORT_STATE;
+  const sorted=[...DEPO_ROWS].sort((a,b)=>{
+    const av=a[k],bv=b[k];
+    if(typeof av==='string')return dir*av.localeCompare(bv);
+    return dir*((av||0)-(bv||0));
+  });
+  const tb=document.getElementById('depo-tbody');
+  if(!sorted.length){
+    tb.innerHTML='<tr><td colspan="7"><div class="empty-state"><h3>Belum ada data</h3><p>Belum ada depo yang push data untuk bulan ini.</p></div></td></tr>';
+    return;
+  }
+  tb.innerHTML=sorted.map(d=>
+    '<tr class="depo-row" onclick="openDepoDetail(\''+d.depo.replace(/'/g,"\\'")+'\')">'+
+    '<td style="font-weight:700;color:var(--text)">'+d.depo+'</td>'+
+    '<td>'+d.sls+'</td>'+
+    '<td>'+juta(d.omsetTM)+'</td>'+
+    '<td style="color:'+(d.ach>=1?'var(--green)':d.ach>=.8?'var(--gold)':'var(--red)')+'">'+pct(d.ach)+'</td>'+
+    '<td style="color:'+(d.growth>=0?'var(--green)':'var(--red)')+'">'+pct(d.growth)+'</td>'+
+    '<td>'+d.ec.toFixed(1)+'</td>'+
+    '<td>'+syncPill(d.lastSync)+'</td>'+
+    '</tr>'
+  ).join('');
+}
+
+async function openDepoDetail(depo){
+  const bulan=document.getElementById('bulan-filter').value;
+  const panel=document.getElementById('depo-detail');
+  panel.classList.add('show');
+  panel.innerHTML='<div style="text-align:center;padding:30px"><span class="loader"></span></div>';
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  const rows=ALL_SUMMARY.filter(r=>r.depo===depo&&r.bulan===bulan);
+
+  let html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
+    '<div style="font-size:1rem;font-weight:800">'+depo+'</div>'+
+    '<button class="close-x" onclick="document.getElementById(\'depo-detail\').classList.remove(\'show\')">✕</button></div>';
+
+  html+='<table><thead><tr><th>Kode</th><th>Nama Salesman</th><th>Omset TM</th><th>Ach%</th><th>Growth</th><th>EC</th><th>ROA</th><th>Total EPB</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const growth=r.omset_lm>0?(r.omset_tm-r.omset_lm)/r.omset_lm:0;
+    html+='<tr><td>'+r.kd_salesman+'</td><td style="color:var(--text)">'+r.nama_salesman+'</td>'+
+      '<td>'+juta(r.omset_tm)+'</td>'+
+      '<td style="color:'+(r.achievement>=1?'var(--green)':r.achievement>=.8?'var(--gold)':'var(--red)')+'">'+pct(r.achievement)+'</td>'+
+      '<td style="color:'+(growth>=0?'var(--green)':'var(--red)')+'">'+pct(growth)+'</td>'+
+      '<td>'+(r.ec_tm||0).toFixed(1)+'</td><td>'+(r.roa||0).toFixed(0)+'</td><td>'+(r.total_epb||0)+'</td></tr>';
+  });
+  html+='</tbody></table>';
+
+  html+='<div style="margin-top:20px;font-size:.8rem;font-weight:800;margin-bottom:8px">Cari transaksi (drill-down)</div>'+
+    '<div class="tx-search"><input type="text" id="tx-search-input" placeholder="Kode outlet atau kode salesman..."><button class="btn btn-teal" onclick="searchTx(\''+depo.replace(/'/g,"\\'")+'\')">Cari</button></div>'+
+    '<div id="tx-result"></div>';
+
+  panel.innerHTML=html;
+}
+
+async function searchTx(depo){
+  const q=document.getElementById('tx-search-input').value.trim();
+  const resEl=document.getElementById('tx-result');
+  if(!q){resEl.innerHTML='<div style="color:var(--text3);font-size:.75rem">Masukkan kode outlet atau kode salesman dulu.</div>';return;}
+  resEl.innerHTML='<div style="text-align:center;padding:20px"><span class="loader"></span></div>';
+  const{data,error}=await sb.from('raw_transaksi').select('*').eq('depo',depo)
+    .or('kd_outlet.eq.'+q+',kd_salesman.eq.'+q).order('tanggal',{ascending:false}).limit(100);
+  if(error){resEl.innerHTML='<div style="color:var(--red);font-size:.75rem">Error: '+error.message+'</div>';return;}
+  if(!data||!data.length){resEl.innerHTML='<div class="empty-state"><h3>Tidak ditemukan</h3><p>Tidak ada transaksi untuk kode ini.</p></div>';return;}
+  let html='<div style="font-size:.68rem;color:var(--text3);margin-bottom:8px">Menampilkan '+data.length+' transaksi terbaru (maks 100)</div>';
+  html+='<table><thead><tr><th>Tanggal</th><th>Outlet</th><th>Salesman</th><th>SKU</th><th>Value</th><th>Faktur</th></tr></thead><tbody>';
+  data.forEach(t=>{
+    html+='<tr><td>'+(t.tanggal||'—')+'</td><td>'+t.kd_outlet+'</td><td>'+t.kd_salesman+'</td>'+
+      '<td>'+(t.sku||'—')+'</td><td>'+juta(t.value)+'</td><td>'+(t.no_faktur||'—')+'</td></tr>';
+  });
+  html+='</tbody></table>';
+  resEl.innerHTML=html;
+}
+</script>
+</body>
+</html>
